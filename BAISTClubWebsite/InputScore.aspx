@@ -3,11 +3,15 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" Runat="Server">
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" Runat="Server">
+    <br />
+    <br />
     Tee: <asp:DropDownList ID="TeeList" runat="server">
         <asp:ListItem>Red</asp:ListItem>
         <asp:ListItem>White</asp:ListItem>
         <asp:ListItem>Blue</asp:ListItem>
          </asp:DropDownList>
+    Course Rating: <asp:TextBox ID="Rating" runat="server"></asp:TextBox>
+    Slope: <asp:TextBox ID="Slope" runat="server"></asp:TextBox>
     <asp:Table ID="Table1" runat="server">
         <asp:TableRow>
             <asp:TableCell>Hole:</asp:TableCell>
