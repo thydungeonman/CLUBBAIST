@@ -1,0 +1,29 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="MasterPage.master.cs" Inherits="MasterPage" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+    <asp:ContentPlaceHolder id="head" runat="server">
+        
+    </asp:ContentPlaceHolder>
+</head>
+<body>
+    
+    <form id="form1" runat="server">
+    <div>
+        <asp:HyperLink ID="StandingReservationLink" NavigateUrl="~/CreateStandingReservation.aspx"  runat="server">Create Standing Reservation</asp:HyperLink>
+        <asp:HyperLink ID="ReserveTeeTimeLink" NavigateUrl="~/CreateReservation.aspx" runat="server">Reserve Tee Time</asp:HyperLink>
+        <asp:HyperLink ID="InputScoreLink" NavigateUrl="~/InputScore.aspx" runat="server">Input a Score</asp:HyperLink>
+        <asp:HyperLink ID="ViewAccountLink" NavigateUrl="~/ViewAccount.aspx" runat="server">View Account</asp:HyperLink>
+        <asp:Button ID="Logoff" Onclick="Logoff_Click" runat="server" Text="Log off" />
+        <asp:ContentPlaceHolder id="ContentPlaceHolder1" runat="server">
+        <div>
+
+        </div>
+        </asp:ContentPlaceHolder>
+    </div>
+    </form>
+</body>
+</html>
