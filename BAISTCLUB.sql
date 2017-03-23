@@ -1114,13 +1114,38 @@ BEGIN
         BEGIN
             EXECUTE [BAISTClubDatabase].[dbo].[AddReservation] @WeekfromToday;
 			IF DATEPART(DAY,@Today) = 1
+			BEGIN
 				DECLARE @Month INT = DATEPART(MONTH,@Today)
 				DECLARE @Year INT = DATEPART(YEAR,@Today)
 				EXECUTE MonthlyHandicapReport @Month,@Year
+			END
+			IF MONTH(@Today) = 4 AND DAY(@Today) = 1
+				EXECUTE YearEndFees
         END
     END
 END
 GO
+
+CREATE PROCEDURE YearEndFees
+AS
+DECLARE @balance FLOAT
+DECLARE @accountid INT
+DECLARE @date DATE = GETDATE()
+
+DECLARE contact_cursor CURSOR FOR
+	SELECT AccountID, CurrentBalance FROM Account WHERE CurrentBalance != 0
+	OPEN contact_cursor
+	FETCH NEXT FROM contact_cursor INTO @accountid, @balance
+
+	WHILE @@FETCH_STATUS = 0
+		BEGIN
+			DECLARE @tenth float = @Balance / 10
+			EXEC AddTransaction @accountid,@date,'Year end fees',@tenth
+
+		END
+	CLOSE contact_cursor
+	DEALLOCATE contact_cursor
+
 
 
 sp_procoption    @ProcName = 'DailyChecks',
