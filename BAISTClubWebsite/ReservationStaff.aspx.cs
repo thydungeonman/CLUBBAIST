@@ -87,5 +87,24 @@ namespace ClubBAIST.BAISTClubWebsite.UI
             BAISTClubCodeHandler handler = new BAISTClubCodeHandler();
             handler.DisplayReservations(int.Parse(CancelNumber.Text), ReservationList);
         }
+
+        protected void ReservationSelect_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (ReservationSelect.SelectedValue == "Member Reservation")
+            {
+                ReservationTable.Visible = true;
+                TournamentTable.Visible = false;
+            }
+            else if (ReservationSelect.SelectedValue == "Tournament Reservation")
+            {
+                ReservationTable.Visible = false;
+                TournamentTable.Visible = true;
+            }
+        }
+
+        protected void TournamentSubmit_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
