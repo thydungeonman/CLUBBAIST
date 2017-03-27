@@ -104,7 +104,27 @@ namespace ClubBAIST.BAISTClubWebsite.UI
 
         protected void TournamentSubmit_Click(object sender, EventArgs e)
         {
+            int hours = int.Parse(TSHour.SelectedItem.Text);
+            int minutes = int.Parse(TSMinute.SelectedItem.Text);
 
+            if (TSAMPM.SelectedItem.Text == "PM" && hours != 12)
+                hours += 12;
+
+            string startdate = TSDate.Text;
+            startdate += " " + hours.ToString() + ":" + minutes.ToString();
+
+            DateTime TournamentStartDate = DateTime.Parse(startdate);
+
+            hours = int.Parse(TEHour.SelectedItem.Text);
+            minutes = int.Parse(TEMinute.SelectedItem.Text);
+
+            if (TEAMPM.SelectedItem.Text == "PM" && hours != 12)
+                hours += 12;
+
+            string enddate = TEDate.Text;
+            startdate += " " + hours.ToString() + ":" + minutes.ToString();
+
+            DateTime TournamentEndDate = DateTime.Parse(enddate);
         }
     }
 }

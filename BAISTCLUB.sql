@@ -92,6 +92,16 @@ CREATE TABLE StandingReservation
 )
 GO
 
+CREATE TABLE Tournament
+(
+	Name NVARCHAR(100) NOT NULL,
+	StartDate DATE PRIMARY KEY,
+	StartTime TIME NOT NULL,
+	EndDate DATE NOT NULL,
+	EndTime TIME NOT NULL
+)
+
+GO
 CREATE TABLE Account
 (
 	AccountID INT PRIMARY KEY IDENTITY(1,1),
@@ -526,7 +536,10 @@ ELSE
 	END
 RETURN @ReturnCode
 GO
-
+CREATE PROCEDURE CheckTournaments
+AS
+	
+GO
 CREATE PROCEDURE CancelStandingReservation(@MemberNumber INT = NULL, @Year INT = NULL)
 AS
 DECLARE @ReturnCode INT
@@ -994,6 +1007,7 @@ ELSE
 	END
 
 GO
+
 CREATE PROCEDURE GetAverage(@MemberNumber INT = NULL,@Average FLOAT OUT)
 AS
 DECLARE @ReturnCode INT = 1

@@ -163,7 +163,7 @@
                 Start Date:
             </asp:TableCell>
             <asp:TableCell>
-                <asp:TextBox  ID="TStartTime" TextMode="Date" runat="server"></asp:TextBox>
+                <asp:TextBox  ID="TSDate" TextMode="Date" runat="server"></asp:TextBox>
             </asp:TableCell>
          </asp:TableRow>
         <asp:TableRow>
@@ -206,7 +206,7 @@
                 End Date:
             </asp:TableCell>
             <asp:TableCell>
-                <asp:TextBox  ID="TEndTime" TextMode="Date" runat="server"></asp:TextBox>
+                <asp:TextBox  ID="TEDate" TextMode="Date" runat="server"></asp:TextBox>
             </asp:TableCell>
                 </asp:TableRow>
             <asp:TableRow>
