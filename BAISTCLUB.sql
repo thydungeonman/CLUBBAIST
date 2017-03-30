@@ -648,6 +648,7 @@ GO
 
 
 GO
+
 CREATE PROCEDURE AddTransaction(@AccountID INT = NULL,@ActivityDate DATE = NULL, @Description NVARCHAR(100) = NULL,@Amount MONEY = NULL)
 AS
 DECLARE @ReturnCode INT = 1
@@ -664,7 +665,7 @@ ELSE
 		INSERT INTO Transactions VALUES
 		(@AccountID,GETDATE(),@ActivityDate,@Description,@Amount)
 		UPDATE Account 
-		SET CurrentBalance = CurrentBalance - @Amount
+		SET CurrentBalance = CurrentBalance - (@Amount * -1)
 		WHERE AccountID = @AccountID
 	END
 RETURN @ReturnCode
@@ -1039,6 +1040,7 @@ RETURN @ReturnCode
 
 
 GO
+
 CREATE PROCEDURE MonthlyHandicapReport(@Month INT = NULL,@Year INT = NULL)
 AS
 DECLARE @MemberNumber INT
@@ -1072,6 +1074,7 @@ ELSE
 		EXEC GetHandicapFactor @MemberNumber,@Handicap OUT
 		INSERT INTO MonthlyHandicap VALUES
 		(@Month,@Year,@MemberNumber,@Handicap,@Average,@BestTen)
+		FETCH NEXT FROM @getid INTO @MemberNumber
 		END
 	END
 
@@ -1147,7 +1150,7 @@ DECLARE @accountid INT
 DECLARE @date DATE = GETDATE()
 
 DECLARE contact_cursor CURSOR FOR
-	SELECT AccountID, CurrentBalance FROM Account WHERE CurrentBalance != 0
+	SELECT AccountID, CurrentBalance FROM Account WHERE CurrentBalance < 0
 	OPEN contact_cursor
 	FETCH NEXT FROM contact_cursor INTO @accountid, @balance
 
@@ -1155,16 +1158,21 @@ DECLARE contact_cursor CURSOR FOR
 		BEGIN
 			DECLARE @tenth float = @Balance / 10
 			EXEC AddTransaction @accountid,@date,'Year end fees',@tenth
-
+			FETCH NEXT FROM contact_cursor INTO @accountid, @balance
+		
 		END
 	CLOSE contact_cursor
 	DEALLOCATE contact_cursor
 
-
+SELECT * FROM Transactions
 
 sp_procoption    @ProcName = 'DailyChecks',
                 @OptionName = 'startup',
                 @OptionValue = 'on'
 GO
 
+SELECT * FROM ACCOUNT
+SELECT * FROM Transactions
+SELECT * FROM MonthlyHandicap
 
+EXEC MonthlyHandicapReport 1,2018
