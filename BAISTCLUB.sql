@@ -151,13 +151,6 @@ CREATE TABLE Score
 
 GO
 
-CREATE TABLE HandicapReport
-(
-	Month INT,
-	Year INT
-	PRIMARY KEY(Month,Year)
-)
-
 CREATE TABLE MonthlyHandicap
 (
 	Month INT,
@@ -167,12 +160,61 @@ CREATE TABLE MonthlyHandicap
 	Average FLOAT NOT NULL,
 	BestAverage FLOAT NOT NULL,
 
-	FOREIGN KEY ([Month],[Year])
-	REFERENCES HandicapReport([Month],[Year]),
 	PRIMARY KEY (Month,Year,MemberNumber)
 )
 
 GO
+
+CREATE PROCEDURE ProcessCurrentHandicapFactor(@MemberNumber INT = NULL)
+AS
+DECLARE @ReturnCode INT = 1
+DECLARE @Rows INT
+DECLARE @numtouse INT = 0
+DECLARE @HandicapFactor FLOAT
+IF @MemberNumber IS NULL
+	RAISERROR('ProcessCurrentHandicapFactor error - Missing Parameter @MemberNumber',16,1)
+ELSE
+	BEGIN
+	SELECT TOP 20 HandicapDifferential FROM score WHERE MemberNumber = @MemberNumber ORDER BY DateTime DESC
+	SET @Rows = @@ROWCOUNT
+
+	IF @Rows < 5
+		BEGIN
+		UPDATE Member
+		SET Handicap = 100
+		WHERE MemberNumber = @MemberNumber
+		END
+	ELSE IF @Rows >= 5 AND @Rows <= 16
+		BEGIN
+		SET @numtouse = CAST(ROUND(((CAST(@Rows AS FLOAT)/2) - 2),1) AS INT)
+		SET @HandicapFactor = (SELECT AVG(HandicapDifferential) From
+		(SELECT TOP(10) HandicapDifferential FROM
+		(SELECT TOP 20 HandicapDifferential FROM score WHERE MemberNumber = 1 ORDER BY DateTime DESC)t
+		ORDER BY HandicapDifferential ASC)t)
+		SET @HandicapFactor = @HandicapFactor * .96
+		SET @HandicapFactor = ROUND(@HandicapFactor,1,1)
+		UPDATE Member
+		SET Handicap = @HandicapFactor
+		WHERE MemberNumber = @MemberNumber
+		END
+	ELSE IF @Rows > 16
+		BEGIN
+		SET @numtouse = @Rows - 10
+		SET @HandicapFactor = (SELECT AVG(HandicapDifferential) From
+		(SELECT TOP(10) HandicapDifferential FROM
+		(SELECT TOP 20 HandicapDifferential FROM score WHERE MemberNumber = 1 ORDER BY DateTime DESC)t
+		ORDER BY HandicapDifferential ASC)t)
+		SET @HandicapFactor = @HandicapFactor * .96
+		SET @HandicapFactor = ROUND(@HandicapFactor,1,1)
+		UPDATE Member
+		SET Handicap = @HandicapFactor
+		WHERE MemberNumber = @MemberNumber
+		END
+
+	END
+GO
+
+
 CREATE PROCEDURE AddScore(@MemberNumber INT = NULL,@Tee NVARCHAR(5) = NULL,@Hole1 INT = NULL,@Hole2 INT = NULL,@Hole3 INT = NULL,@Hole4 INT = NULL,@Hole5 INT = NULL,@Hole6 INT = NULL,
 @Hole7 INT = NULL,@Hole8 INT = NULL,@Hole9 INT = NULL,@Hole10 INT,@Hole11 INT,@Hole12 INT,@Hole13 INT,@Hole14 INT,@Hole15 INT,@Hole16 INT,@Hole17 INT,@Hole18 INT,@Total INT = NULL,
 @HandicapDifferential FLOAT)
@@ -193,7 +235,7 @@ ELSE IF @Hole4 IS NULL
 	RAISERROR('AddScore Error - Missing parameter @Hole4',16,1)
 ELSE IF @Hole5 IS NULL
 	RAISERROR('AddScore Error - Missing parameter @Hole5',16,1)
-ELSE IF @Hole6 IS NULL
+ELSE IF @Hole6 IS NULL	
 	RAISERROR('AddScore Error - Missing parameter @Hole6',16,1)
 ELSE IF @Hole7 IS NULL
 	RAISERROR('AddScore Error - Missing parameter @Hole7',16,1)
@@ -217,6 +259,28 @@ ELSE
 RETURN @ReturnCode	
 
 GO
+
+CREATE PROCEDURE DealWithNames(@MemberName1 NVARCHAR(20) OUT, @MemberName2 NVARCHAR(20) = 'EMPTY' OUT, @MemberName3 NVARCHAR(20) = 'EMPTY' OUT, @MemberName4 NVARCHAR(20) = 'EMPTY' OUT, @MemberName5 NVARCHAR(20), @MemberName6 NVARCHAR(20) = 'EMPTY',@MemberName7 NVARCHAR(20) = 'EMPTY',@Num1 INT)
+AS
+
+IF @Num1 = 1
+	BEGIN
+	SET @MemberName2 = @MemberName5
+	SET @MemberName3 = @MemberName6
+	SET @MemberName4 = @MemberName7
+	END
+ELSE IF @Num1 = 2
+	BEGIN
+		SET @MemberName3 = @MemberName5
+		SET @MemberName4 = @MemberName6
+	END
+ELSE IF @Num1 = 3
+	BEGIN
+		SET @MemberName4 = @MemberName5
+	END
+RETURN 0
+GO
+
 CREATE PROCEDURE AddReservation(@Date DATE = NULL)
 AS
 DECLARE @ReturnCode INT
@@ -333,6 +397,51 @@ ELSE
 RETURN @ReturnCode
 GO
 
+CREATE PROCEDURE CheckStandingReservations(@Day NVARCHAR(9) = NULL,@Date DATE = NULL)
+AS
+DECLARE @ReturnCode INT
+SET @ReturnCode = 1
+DECLARE @Time TIME(0)
+DECLARE @MemberNumber INT
+DECLARE @MemberName1 NVARCHAR(20)
+DECLARE @MemberName2 NVARCHAR(20)
+DECLARE @MemberName3 NVARCHAR(20)
+DECLARE @MemberName4 NVARCHAR(20)
+IF @Day IS NULL
+	RAISERROR('CreateStandingReservation error - required parameter @Day',16,1)
+ELSE IF @Date IS NULL
+	RAISERROR('CreateStandingReservation error - required parameter @Date',16,1)
+ELSE
+	BEGIN
+
+	DECLARE contact_cursor CURSOR FOR
+	SELECT RequestedTime,MemberNumber1,MemberName1,MemberName2,MemberName3,MemberName4 FROM StandingReservation WHERE DayOfWeek = @Day AND IsCanceled = 0
+
+	OPEN contact_cursor
+
+	FETCH NEXT FROM contact_cursor INTO @Time,@MemberNumber,@MemberName1,@MemberName2,@MemberName3,@MemberName4
+
+	WHILE @@FETCH_STATUS = 0
+		BEGIN
+			EXEC AddTeeTime @Date,@Time,MemberNumber1,MemberName1,MemberName2,MemberName3,MemberName4,4,'',0,NULL
+			FETCH NEXT FROM contact_cursor INTO @Time,@MemberNumber,@MemberName1,@MemberName2,@MemberName3,@MemberName4
+		END
+
+	CLOSE contact_cursor
+	DEALLOCATE contact_cursor
+
+	UPDATE StandingReservation SET IsCanceled = 1 WHERE DATEDIFF(DAY,GETDATE(),EndDate)< 1 AND IsCanceled = 0
+	IF	@@ERROR = 0
+		SET @ReturnCode = 0 
+	ELSE
+		RAISERROR('CreateStandingReservation error - update error',16,1)
+	END
+RETURN @ReturnCode
+GO
+
+
+
+
 
 CREATE PROCEDURE AddMember(@MembershipLevel VARCHAR(6) = NULL,@MembershipTier VARCHAR(30) = NULL, @MemberName NVARCHAR(50) = NULL,@Password NVARCHAR(100) = NULL,@IsShareHolder BIT = NULL,
 @Sex CHAR = NULL,@Standing CHAR = NULL,@MemberNumber INT OUT)
@@ -432,25 +541,7 @@ RETURN @ReturnCode
 SELECT * FROM TeeTime
 GO
 
-CREATE PROCEDURE DealWithNames(@MemberName1 NVARCHAR(20) OUT, @MemberName2 NVARCHAR(20) = 'EMPTY' OUT, @MemberName3 NVARCHAR(20) = 'EMPTY' OUT, @MemberName4 NVARCHAR(20) = 'EMPTY' OUT, @MemberName5 NVARCHAR(20), @MemberName6 NVARCHAR(20) = 'EMPTY',@MemberName7 NVARCHAR(20) = 'EMPTY',@Num1 INT)
-AS
 
-IF @Num1 = 1
-	BEGIN
-	SET @MemberName2 = @MemberName5
-	SET @MemberName3 = @MemberName6
-	SET @MemberName4 = @MemberName7
-	END
-ELSE IF @Num1 = 2
-	BEGIN
-		SET @MemberName3 = @MemberName5
-		SET @MemberName4 = @MemberName6
-	END
-ELSE IF @Num1 = 3
-	BEGIN
-		SET @MemberName4 = @MemberName5
-	END
-RETURN 0
 GO
 
 CREATE PROCEDURE AddStandingReservation(@StartDate DATE = NULL,@EndDate DATE = NULL, @RequestedTime Time(0) = NULL,@DayOfWeek NVARCHAR(9) = NULL,@MemberNumber1 INT = NULL, @MemberNumber2 INT = NULL, @MemberNumber3 INT = NULL, @MemberNumber4 INT = NULL, 
@@ -495,47 +586,7 @@ ELSE
 RETURN @ReturnCode
 GO
 
-CREATE PROCEDURE CheckStandingReservations(@Day NVARCHAR(9) = NULL,@Date DATE = NULL)
-AS
-DECLARE @ReturnCode INT
-SET @ReturnCode = 1
-DECLARE @Time TIME(0)
-DECLARE @MemberNumber INT
-DECLARE @MemberName1 NVARCHAR(20)
-DECLARE @MemberName2 NVARCHAR(20)
-DECLARE @MemberName3 NVARCHAR(20)
-DECLARE @MemberName4 NVARCHAR(20)
-IF @Day IS NULL
-	RAISERROR('CreateStandingReservation error - required parameter @Day',16,1)
-ELSE IF @Date IS NULL
-	RAISERROR('CreateStandingReservation error - required parameter @Date',16,1)
-ELSE
-	BEGIN
 
-	DECLARE contact_cursor CURSOR FOR
-	SELECT RequestedTime,MemberNumber1,MemberName1,MemberName2,MemberName3,MemberName4 FROM StandingReservation WHERE DayOfWeek = @Day AND IsCanceled = 0
-
-	OPEN contact_cursor
-
-	FETCH NEXT FROM contact_cursor INTO @Time,@MemberNumber,@MemberName1,@MemberName2,@MemberName3,@MemberName4
-
-	WHILE @@FETCH_STATUS = 0
-		BEGIN
-			EXEC AddTeeTime @Date,@Time,MemberNumber1,MemberName1,MemberName2,MemberName3,MemberName4,4,'',0,NULL
-			FETCH NEXT FROM contact_cursor INTO @Time,@MemberNumber,@MemberName1,@MemberName2,@MemberName3,@MemberName4
-		END
-
-	CLOSE contact_cursor
-	DEALLOCATE contact_cursor
-
-	UPDATE StandingReservation SET IsCanceled = 1 WHERE DATEDIFF(DAY,GETDATE(),EndDate)< 1 AND IsCanceled = 0
-	IF	@@ERROR = 0
-		SET @ReturnCode = 0 
-	ELSE
-		RAISERROR('CreateStandingReservation error - update error',16,1)
-	END
-RETURN @ReturnCode
-GO
 CREATE PROCEDURE CheckTournaments
 AS
 	
@@ -560,53 +611,7 @@ ELSE
 RETURN @ReturnCode
 GO
 
-CREATE PROCEDURE ProcessCurrentHandicapFactor(@MemberNumber INT = NULL)
-AS
-DECLARE @ReturnCode INT = 1
-DECLARE @Rows INT
-DECLARE @numtouse INT = 0
-DECLARE @HandicapFactor FLOAT
-IF @MemberNumber IS NULL
-	RAISERROR('ProcessCurrentHandicapFactor error - Missing Parameter @MemberNumber',16,1)
-ELSE
-	BEGIN
-	SELECT TOP 20 HandicapDifferential FROM score WHERE MemberNumber = @MemberNumber ORDER BY DateTime DESC
-	SET @Rows = @@ROWCOUNT
 
-	IF @Rows < 5
-		BEGIN
-		UPDATE Member
-		SET Handicap = 100
-		WHERE MemberNumber = @MemberNumber
-		END
-	ELSE IF @Rows >= 5 AND @Rows <= 16
-		BEGIN
-		SET @numtouse = CAST(ROUND(((CAST(@Rows AS FLOAT)/2) - 2),1) AS INT)
-		SET @HandicapFactor = (SELECT AVG(HandicapDifferential) From
-		(SELECT TOP(10) HandicapDifferential FROM
-		(SELECT TOP 20 HandicapDifferential FROM score WHERE MemberNumber = 1 ORDER BY DateTime DESC)t
-		ORDER BY HandicapDifferential ASC)t)
-		SET @HandicapFactor = @HandicapFactor * .96
-		SET @HandicapFactor = ROUND(@HandicapFactor,1,1)
-		UPDATE Member
-		SET Handicap = @HandicapFactor
-		WHERE MemberNumber = @MemberNumber
-		END
-	ELSE IF @Rows > 16
-		BEGIN
-		SET @numtouse = @Rows - 10
-		SET @HandicapFactor = (SELECT AVG(HandicapDifferential) From
-		(SELECT TOP(10) HandicapDifferential FROM
-		(SELECT TOP 20 HandicapDifferential FROM score WHERE MemberNumber = 1 ORDER BY DateTime DESC)t
-		ORDER BY HandicapDifferential ASC)t)
-		SET @HandicapFactor = @HandicapFactor * .96
-		SET @HandicapFactor = ROUND(@HandicapFactor,1,1)
-		UPDATE Member
-		SET Handicap = @HandicapFactor
-		WHERE MemberNumber = @MemberNumber
-		END
-
-	END
 
 
 GO
@@ -1056,8 +1061,6 @@ ELSE IF @Year IS NULL
 	RAISERROR('MonthlyHandicapReport error - Missing Parameter @Year',16,1)
 ELSE
 	BEGIN
-	INSERT INTO HandicapReport VALUES
-	(@Month,@Year)
 
 	SET @getid = CURSOR FOR
 	SELECT MemberNumber 
@@ -1113,36 +1116,6 @@ SET @Today = DATEADD(DAY,1,@Today)
 EXEC AddReservation @Today
 GO
 
-
-
-CREATE PROCEDURE DailyChecks
-AS
-BEGIN
-	DECLARE @Today DATE = GETDATE()
-	DECLARE @WeekfromToday DATE = DATEADD(DAY,7,@Today)
-    SET NOCOUNT ON;
-
-    DECLARE @timeToRun nvarchar(50)
-    SET @timeToRun = '1:00:00'
-
-    WHILE 1 = 1
-    BEGIN
-        WAITFOR TIME @timeToRun
-        BEGIN
-            EXECUTE [BAISTClubDatabase].[dbo].[AddReservation] @WeekfromToday;
-			IF DATEPART(DAY,@Today) = 1
-			BEGIN
-				DECLARE @Month INT = DATEPART(MONTH,@Today)
-				DECLARE @Year INT = DATEPART(YEAR,@Today)
-				EXECUTE MonthlyHandicapReport @Month,@Year
-			END
-			IF MONTH(@Today) = 4 AND DAY(@Today) = 1
-				EXECUTE YearEndFees
-        END
-    END
-END
-GO
-
 CREATE PROCEDURE YearEndFees
 AS
 DECLARE @balance FLOAT
@@ -1163,16 +1136,32 @@ DECLARE contact_cursor CURSOR FOR
 		END
 	CLOSE contact_cursor
 	DEALLOCATE contact_cursor
+GO
+
+
+CREATE PROCEDURE DailyChecks
+AS
+BEGIN
+	DECLARE @Today DATE = GETDATE()
+	DECLARE @WeekfromToday DATE = DATEADD(DAY,7,@Today)
+
+            EXECUTE [sjurak1].[dbo].[AddReservation] @WeekfromToday;
+			IF DATEPART(DAY,@Today) = 1
+			BEGIN
+				DECLARE @Month INT = DATEPART(MONTH,@Today)
+				DECLARE @Year INT = DATEPART(YEAR,@Today)
+				EXECUTE MonthlyHandicapReport @Month,@Year
+			END
+			IF MONTH(@Today) = 4 AND DAY(@Today) = 1
+				EXECUTE YearEndFees
+
+END
+GO
+
+
 
 SELECT * FROM Transactions
-
-sp_procoption    @ProcName = 'DailyChecks',
-                @OptionName = 'startup',
-                @OptionValue = 'on'
-GO
 
 SELECT * FROM ACCOUNT
 SELECT * FROM Transactions
 SELECT * FROM MonthlyHandicap
-
-EXEC MonthlyHandicapReport 1,2018
