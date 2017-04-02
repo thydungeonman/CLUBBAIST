@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" MasterPageFile="~/MasterPage.master" AutoEventWireup="true" CodeFile="CreateReservation.aspx.cs" Inherits="ClubBAIST.BAISTClubWebsite.UI.CreateReservation" %>
+﻿<%@ Page Language="C#" MasterPageFile="~/MasterPage.master" AutoEventWireup="true"  CodeFile="CreateReservation.aspx.cs" Inherits="ClubBAIST.BAISTClubWebsite.UI.CreateReservation" %>
 
 
 <asp:Content ID="Content2" ContentPlaceHolderID="head" Runat="Server">
@@ -113,9 +113,9 @@
                 <asp:TableCell>
                 <asp:TextBox runat="server" ID="ViewTeeTimeBox" TextMode="Date"></asp:TextBox>
                     <asp:Button runat="server" ID="ViewTeeTime" OnClick="ViewTeeTime_Click" Text="Display TeeTimes"></asp:Button>
+                    <div style="height:350px; width:auto; overflow:auto;">
                     <asp:Table Gridlines="Both" ID="TeeTimesTable" runat="server">
                         <asp:TableHeaderRow>
-                            <asp:TableHeaderCell>Date</asp:TableHeaderCell>
                             <asp:TableHeaderCell>Time</asp:TableHeaderCell>
                             <asp:TableHeaderCell>MemberName</asp:TableHeaderCell>
                             <asp:TableHeaderCell>MemberName</asp:TableHeaderCell>
@@ -123,6 +123,7 @@
                             <asp:TableHeaderCell>MemberName</asp:TableHeaderCell>
                         </asp:TableHeaderRow>
                     </asp:Table>
+                    </div>
                 </asp:TableCell>
           </asp:TableRow>
         </asp:Table>

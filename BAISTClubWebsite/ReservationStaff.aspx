@@ -12,6 +12,8 @@
     <br />
     <br />
     <asp:Table  ID="ReservationTable" runat="server">
+
+         
         <asp:TableRow>
             <asp:TableCell>
                 Date:
@@ -158,6 +160,14 @@
     </asp:Table>
 
     <asp:Table ID="TournamentTable" Visible="False" runat="server">
+        <asp:TableRow>
+            <asp:TableCell>
+                Name:
+            </asp:TableCell>
+            <asp:TableCell>
+                <asp:TextBox  ID="Name"   runat="server"></asp:TextBox>
+            </asp:TableCell>
+        </asp:TableRow>
         <asp:TableRow>
             <asp:TableCell>
                 Start Date:

@@ -279,5 +279,55 @@ namespace ClubBAIST.BAISTClubWebsite.TechnicalServices
             return success;
         }
 
+        public bool AddTournament(Tournament NewTournament)
+        {
+
+            bool Success = true;
+            SqlConnection CONN = new SqlConnection();
+            CONN.ConnectionString = ConfigurationManager.ConnectionStrings["ClubBAIST Database"].ConnectionString;
+            CONN.Open();
+
+            SqlCommand AddCommand = new SqlCommand();
+            AddCommand.CommandText = "AddTournament";
+            AddCommand.CommandType = CommandType.StoredProcedure;
+            AddCommand.Connection = CONN;
+
+            SqlParameter parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.NVarChar;
+            parameter.Value = NewTournament.Name;
+            parameter.ParameterName = "@Name";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.Date;
+            parameter.Value = NewTournament.StartDate.Date;
+            parameter.ParameterName = "@StartDate";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.Time;
+            parameter.Value = NewTournament.StartTime.TimeOfDay;
+            parameter.ParameterName = "@StartTime";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.Date;
+            parameter.Value = NewTournament.EndDate.Date;
+            parameter.ParameterName = "@EndDate";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.Time;
+            parameter.Value = NewTournament.EndTime.TimeOfDay;
+            parameter.ParameterName = "@EndTime";
+            AddCommand.Parameters.Add(parameter);
+
+            AddCommand.ExecuteNonQuery();
+            CONN.Close();
+            return Success;
+            
+
+        }
+
     }
 }

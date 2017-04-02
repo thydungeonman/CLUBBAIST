@@ -51,8 +51,6 @@ CREATE TABLE Application
 	ShareholderName2 NVARCHAR(50) NOT NULL,
 	ShareholderDate2 DATE NOT NULL
 )
-
-
 CREATE TABLE TeeTime
 (
 	Date Date CONSTRAINT FKDATE FOREIGN KEY REFERENCES DailyReservationSheet(Date),
@@ -159,12 +157,72 @@ CREATE TABLE MonthlyHandicap
 	Handicap FLOAT NOT NULL,
 	Average FLOAT NOT NULL,
 	BestAverage FLOAT NOT NULL,
-
 	PRIMARY KEY (Month,Year,MemberNumber)
 )
 
 GO
+DECLARE @THING DATETIME = GETDATE() + 1
+EXECUTE SetUpSpecificDay @THING
 
+
+CREATE PROCEDURE SetUpSpecificDay @Day DATETIME = NULL
+AS
+DECLARE @Time TIME = '06:00'
+DECLARE @EndTime TIME = '20:07'
+DECLARE @Bit BIT = 1
+
+IF @Day IS NULL
+	RAISERROR('SetUpSpecificDay ERROR - REQUIRED PARAMETER @Day',16,1)
+ELSE
+	BEGIN
+	INSERT INTO DailyReservationSheet
+	VALUES(@Day,DATENAME(WEEKDAY,@Day))
+
+	WHILE DATEDIFF(MINUTE,@Time,@EndTime) != 0
+		BEGIN
+		INSERT INTO TeeTime VALUES (@Day,@Time,1,'EMPTY','EMPTY','EMPTY','EMPTY',0,'0',0,@Day,@Day,'CLERK')
+		IF @Bit = 1
+			BEGIN
+			SET @Time = DATEADD(MINUTE,7,@Time)
+			SET @Bit = 0
+			END
+		ELSE
+			BEGIN
+			SET @Time = DATEADD(MINUTE,8,@Time)
+			SET @Bit = 1
+			END
+		END
+		EXECUTE CheckTournaments @Day
+
+	END
+
+GO
+
+CREATE PROCEDURE SetUpDay
+AS
+DECLARE @Today DATETIME = GETDATE()
+DECLARE @Time TIME = '06:00'
+DECLARE @EndTime TIME = '20:07'
+DECLARE @Bit BIT = 1
+INSERT INTO DailyReservationSheet
+VALUES(@Today,DATENAME(WEEKDAY,@Today))
+
+WHILE DATEDIFF(MINUTE,@Time,@EndTime) != 0
+	BEGIN
+	INSERT INTO TeeTime VALUES (@Today,@Time,1,'EMPTY','EMPTY','EMPTY','EMPTY',0,'0',0,@Today,@Today,'CLERK')
+	IF @Bit = 1
+		BEGIN
+		SET @Time = DATEADD(MINUTE,7,@Time)
+		SET @Bit = 0
+		END
+	ELSE
+		BEGIN
+		SET @Time = DATEADD(MINUTE,8,@Time)
+		SET @Bit = 1
+		END
+	END
+
+GO
 CREATE PROCEDURE ProcessCurrentHandicapFactor(@MemberNumber INT = NULL)
 AS
 DECLARE @ReturnCode INT = 1
@@ -369,33 +427,30 @@ ELSE
 	
 		IF @Good = 1	
 			BEGIN
-				IF NOT EXISTS(SELECT dbo.Reservation.Date FROM Reservation WHERE Date = @Date)
+
+				IF NOT EXISTS(SELECT dbo.DailyReservationSheet.Date FROM DailyReservationSheet WHERE Date = @Date)
 				BEGIN
 					EXECUTE AddReservation @Date
 				END
-				IF EXISTS (SELECT * FROM TeeTime WHERE Date = @Date AND Time = @Time) --if that time is already taken
+				IF EXISTS (SELECT * FROM TeeTime WHERE Date = @Date AND Time = @Time AND NumberOfPlayers = 0)
 					BEGIN
-						IF EXISTS (SELECT * FROM TeeTime WHERE Date = @Date AND Time = @Time AND (NumberOfPlayers + @NumberOfPlayers) <= 4) -- But if you can fit
-							BEGIN
-								SELECT @MEM1 = MemberName1, @MEM2 = MemberName2, @MEM3 = MemberName3, @MEM4 = MemberName4,@NumMem = NumberOfPlayers FROM TeeTime WHERE Date = @Date AND Time = @Time
-								EXECUTE DealWithNames @MEM1 out, @MEM2 out, @MEM3 out, @MEM4 out, @MemberName1,@MemberName2,@MemberName3,@NumMem
-								UPDATE TeeTime SET MemberName1 = @MEM1, MemberName2 = @MEM2,MemberName3 = @MEM3,MemberName4 = @MEM4,NumberOfPlayers = (NumberofPlayers + @NumberOfPlayers) WHERE Date = @Date AND Time = @Time
-							END
+					UPDATE TeeTime
+					SET MemberNumber = @MemberNumber,MemberName1 = @MemberName1,MemberName2 = @MemberName2,MemberName3 = @MemberName3,MemberName4 = @MemberName4,NumberOfPlayers = @NumberOfPlayers,
+						NumberOfCarts = @NumberOfCarts, BookingDate = CONVERT(DATE,@Now),BookingTime = CONVERT(TIME,@Now)
+						WHERE Date = @Date AND Time = @Time
 					END
-				ELSE  --if the time was open
+				 ELSE IF EXISTS (SELECT * FROM TeeTime WHERE Date = @Date AND Time = @Time AND (NumberOfPlayers + @NumberOfPlayers) <= 4) -- But if you can fit
 					BEGIN
-						INSERT INTO TeeTime
-						VALUES(@Date,@Time,@MemberNumber,@MemberName1,@MemberName2,@MemberName3,@MemberName4,@NumberOfPlayers,@PhoneNumber,@NumberOfCarts,CONVERT(DATE,@Now),CONVERT(TIME,@Now),@EmployeeName)
-						IF @@ERROR = 0
-							SET @ReturnCode = 0
-						ELSE
-							RAISERROR('AddTeeTime error - INSERT ERROR',16,1)
+						SELECT @MEM1 = MemberName1, @MEM2 = MemberName2, @MEM3 = MemberName3, @MEM4 = MemberName4,@NumMem = NumberOfPlayers FROM TeeTime WHERE Date = @Date AND Time = @Time
+						EXECUTE DealWithNames @MEM1 out, @MEM2 out, @MEM3 out, @MEM4 out, @MemberName1,@MemberName2,@MemberName3,@NumMem
+						UPDATE TeeTime SET MemberName1 = @MEM1, MemberName2 = @MEM2,MemberName3 = @MEM3,MemberName4 = @MEM4,NumberOfPlayers = (NumberofPlayers + @NumberOfPlayers) WHERE Date = @Date AND Time = @Time
 					END
 			END
 		END
 	END
 RETURN @ReturnCode
 GO
+
 
 CREATE PROCEDURE CheckStandingReservations(@Day NVARCHAR(9) = NULL,@Date DATE = NULL)
 AS
@@ -514,7 +569,12 @@ ELSE IF @MemberNumber IS NULL
 	RAISERROR('CancelTeeTime error - required parameter @MemberNumber',16,1)
 ELSE
 	BEGIN
-	DELETE FROM TeeTime WHERE Date = @Date and Time = @Time AND MemberNumber = @MemberNumber
+	
+	UPDATE TeeTime
+					SET MemberNumber = 1,MemberName1 = 'EMPTY',MemberName2 = 'EMPTY',MemberName3 = 'EMPTY',MemberName4 = 'EMPTY',NumberOfPlayers = 0,
+						NumberOfCarts = 0, BookingDate = Date ,BookingTime = Time
+						WHERE Date = @Date AND Time = @Time
+
 	IF @@ERROR = 0
 		SET @ReturnCode = 0
 	ELSE
@@ -530,16 +590,13 @@ IF @MemberNumber IS NULL
 	RAISERROR('GetMembersReservations error - required parameter @MemberNumber',16,1)
 ELSE
 	BEGIN
-	SELECT Date, Time FROM TeeTime WHERE MemberNumber = @MemberNumber AND Date >= GETDATE()
-	IF @@ERROR = 0
+	SELECT Date, Time FROM TeeTime WHERE MemberNumber = 2 AND DATEDIFF(DAY,Date,GETDATE()) >= 0
+	IF @@ERROR = 0 
 		SET @ReturnCode = 0
 	ELSE
 		RAISERROR('GetMembersReservations error - SELECT error',16,1)
 	END
 RETURN @ReturnCode
-
-SELECT * FROM TeeTime
-GO
 
 
 GO
@@ -587,9 +644,39 @@ RETURN @ReturnCode
 GO
 
 
-CREATE PROCEDURE CheckTournaments
+CREATE PROCEDURE CheckTournaments @Day DATE
 AS
-	
+DECLARE @StartD DATE
+DECLARE @EndD DATE
+DECLARE @StartT TIME
+DECLARE @EndT TIME
+
+SELECT @StartD = StartDate,@EndD = EndDate,@StartT = StartTime, @EndT = EndTime FROM Tournament
+WHERE DATEDIFF(DAY,@DAY,StartDate) <= 0 AND DATEDIFF(DAY,@DAY,ENDDate) >= 0
+
+IF	DATEDIFF(DAY,@Day,@StartD) = 0
+	BEGIN
+	UPDATE TeeTime
+	SET MemberName1 = 'Tournament',MemberName2 = 'Tournament',MemberName3 = 'Tournament',MemberName4 = 'Tournament', NumberOfPlayers = 4,
+		NumberOfCarts = 4
+	WHERE DATEDIFF(MINUTE,Time,@StartT) >= 0 AND DATE = @Day
+	END
+ELSE IF DATEDIFF(DAY,@DAY,@EndD) = 0
+	BEGIN
+	UPDATE TeeTime
+	SET MemberName1 = 'Tournament',MemberName2 = 'Tournament',MemberName3 = 'Tournament',MemberName4 = 'Tournament', NumberOfPlayers = 4,
+		NumberOfCarts = 4
+	WHERE DATEDIFF(MINUTE,Time,@EndT) <= 0 AND DATE = @Day
+	END
+ELSE
+	BEGIN
+	UPDATE TeeTime
+	SET MemberName1 = 'Tournament',MemberName2 = 'Tournament',MemberName3 = 'Tournament',MemberName4 = 'Tournament', NumberOfPlayers = 4,
+		NumberOfCarts = 4
+	WHERE DATE = @Day
+	END
+
+
 GO
 CREATE PROCEDURE CancelStandingReservation(@MemberNumber INT = NULL, @Year INT = NULL)
 AS
@@ -1086,6 +1173,29 @@ DEALLOCATE @getid
 
 
 GO
+CREATE PROCEDURE AddTournament @Name NVARCHAR(100) = NULL,@StartDate DATE = NULL,@StartTime TIME = NULL,@EndDate DATE = NULL, @EndTime TIME = NULL
+AS
+DECLARE @ReturnCode INT = 1
+IF @Name IS NULL
+	RAISERROR('AddTournament ERROR - Missing parameter @Name',16,1)
+ELSE IF @StartDate IS NULL
+	RAISERROR('AddTournament ERROR - Missing parameter @StartDate',16,1)
+ELSE IF @StartTime IS NULL
+	RAISERROR('AddTournament ERROR - Missing parameter @StartTime',16,1)
+ELSE IF @EndDate IS NULL
+	RAISERROR('AddTournament ERROR - Missing parameter @EndDate',16,1)
+ELSE IF @EndTime IS NULL
+	RAISERROR('AddTournament ERROR - Missing parameter @EndTime',16,1)
+ELSE 
+	BEGIN
+	INSERT INTO Tournament
+	VALUES(@Name,@StartDate,@StartTime,@EndDate,@EndTime)
+	IF @@ERROR = 0
+		SET @ReturnCode = 0
+	ELSE
+		RAISERROR('AddTournament ERROR - INSERT ERROR',16,1)
+	END
+RETURN @ReturnCode
 
 
 --start data insertion
@@ -1165,3 +1275,7 @@ SELECT * FROM Transactions
 SELECT * FROM ACCOUNT
 SELECT * FROM Transactions
 SELECT * FROM MonthlyHandicap
+SELECT * FROM TeeTime
+SELECT * FROM DailyReservationSheet
+SELECT * FROM Tournament
+

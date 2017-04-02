@@ -122,9 +122,13 @@ namespace ClubBAIST.BAISTClubWebsite.UI
                 hours += 12;
 
             string enddate = TEDate.Text;
-            startdate += " " + hours.ToString() + ":" + minutes.ToString();
+            enddate += " " + hours.ToString() + ":" + minutes.ToString();
 
             DateTime TournamentEndDate = DateTime.Parse(enddate);
+            
+            Tournament NewTournament = new Tournament(Name.Text, TournamentStartDate, TournamentEndDate, TournamentStartDate, TournamentEndDate);
+            BAISTClubCodeHandler RequestHandler = new BAISTClubCodeHandler();
+            RequestHandler.AddTournament(NewTournament);
         }
     }
 }

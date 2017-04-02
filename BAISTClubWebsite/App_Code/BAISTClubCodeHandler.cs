@@ -120,5 +120,11 @@ namespace ClubBAIST.BAISTClubWebsite.Domain
             return HandicapManager.GetCurrentHandicap(membernumber);
         }
 
+        public bool AddTournament(Tournament T)
+        {
+            Reservations TournamentManager = new Reservations();
+            return TournamentManager.AddTournament(T);
+        }
+
     }
 }

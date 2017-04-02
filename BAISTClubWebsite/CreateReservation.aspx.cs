@@ -16,16 +16,25 @@ namespace ClubBAIST.BAISTClubWebsite.UI
         {
             BAISTClubCodeHandler handler = new BAISTClubCodeHandler();
             List<TeeTime> Times = handler.ViewTeeTimes(DateTime.Parse(ViewTeeTimeBox.Text));
-
+            
             for (int i = 0; i < Times.Count; i++)
             {
                 TableRow Row = new TableRow();
+                Row.Height = 10;
                 TableCell Cell = new TableCell();
 
-                Cell.Text = Times[i].Date.ToShortDateString();
-                Row.Cells.Add(Cell);
+                //Cell.Text = Times[i].Date.ToShortDateString();
+                //Row.Cells.Add(Cell);
 
                 Cell = new TableCell();
+
+                if (i % 2 == 0)
+                    Row.BackColor = System.Drawing.Color.LightGray;
+                if (Times[i].MemberName1 != "EMPTY")
+                {
+                    Row.Font.Bold = true;
+                }
+
                 Cell.Text = Times[i].Time.ToShortTimeString();
                 Row.Cells.Add(Cell);
                 Cell = new TableCell();
