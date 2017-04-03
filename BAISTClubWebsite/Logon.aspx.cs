@@ -95,23 +95,33 @@ public partial class Logon : System.Web.UI.Page
 
             command.ExecuteNonQuery();
 
-            if (Password.Text == (string)password.Value)
+            try
             {
-                
-                FormsAuthentication.SetAuthCookie(membernumber.ToString(), false);
-                Session["MemberNumber"] = membernumber;
-                Session["MemberName"] = name.Value.ToString();
-                Session["MembershipLevel"] = level.Value.ToString();
-                Session["IsShareholder"] = isshareholder.Value;
-                Session["Sex"] = sex.Value;
-                CONN.Close();
-                Response.Redirect("~/CreateReservation.aspx");
+                if (Password.Text == (string)password.Value)
+                {
+
+                    FormsAuthentication.SetAuthCookie(membernumber.ToString(), false);
+                    Session["MemberNumber"] = membernumber;
+                    Session["MemberName"] = name.Value.ToString();
+                    Session["MembershipLevel"] = level.Value.ToString();
+                    Session["IsShareholder"] = isshareholder.Value;
+                    Session["Sex"] = sex.Value;
+                    Session["MembershipLevel"] = level.Value.ToString();
+                    CONN.Close();
+                    Response.Redirect("~/CreateReservation.aspx");
+                }
+                else
+                {
+                    CONN.Close();
+                    Message.Text = "Incorrect Password";
+                }
             }
-            else
+            catch (Exception)
             {
-                CONN.Close();
-                Message.Text = "Incorrect Password";
+
+                Message.Text = "That is not an existing MemberNumber";
             }
+            
 
         }
     }

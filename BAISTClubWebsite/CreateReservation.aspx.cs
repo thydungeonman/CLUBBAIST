@@ -15,43 +15,48 @@ namespace ClubBAIST.BAISTClubWebsite.UI
         protected void ViewTeeTime_Click(object sender, EventArgs e)
         {
             BAISTClubCodeHandler handler = new BAISTClubCodeHandler();
-            List<TeeTime> Times = handler.ViewTeeTimes(DateTime.Parse(ViewTeeTimeBox.Text));
-            
-            for (int i = 0; i < Times.Count; i++)
+            try
             {
-                TableRow Row = new TableRow();
-                Row.Height = 10;
-                TableCell Cell = new TableCell();
+                List<TeeTime> Times = handler.ViewTeeTimes(DateTime.Parse(ViewTeeTimeBox.Text));
 
-                //Cell.Text = Times[i].Date.ToShortDateString();
-                //Row.Cells.Add(Cell);
-
-                Cell = new TableCell();
-
-                if (i % 2 == 0)
-                    Row.BackColor = System.Drawing.Color.LightGray;
-                if (Times[i].MemberName1 != "EMPTY")
+                for (int i = 0; i < Times.Count; i++)
                 {
-                    Row.Font.Bold = true;
+                    TableRow Row = new TableRow();
+                    Row.Height = 10;
+                    TableCell Cell = new TableCell();
+
+                    Cell = new TableCell();
+
+                    if (i % 2 == 0)
+                        Row.BackColor = System.Drawing.Color.LightGray;
+                    if (Times[i].MemberName1 != "EMPTY")
+                    {
+                        Row.Font.Bold = true;
+                    }
+
+                    Cell.Text = Times[i].Time.ToShortTimeString();
+                    Row.Cells.Add(Cell);
+                    Cell = new TableCell();
+                    Cell.Text = Times[i].MemberName1;
+                    Row.Cells.Add(Cell);
+                    Cell = new TableCell();
+                    Cell.Text = Times[i].MemberName2;
+                    Row.Cells.Add(Cell);
+                    Cell = new TableCell();
+                    Cell.Text = Times[i].MemberName3;
+                    Row.Cells.Add(Cell);
+                    Cell = new TableCell();
+                    Cell.Text = Times[i].MemberName4;
+                    Row.Cells.Add(Cell);
+
+                    TeeTimesTable.Rows.Add(Row);
                 }
-
-                Cell.Text = Times[i].Time.ToShortTimeString();
-                Row.Cells.Add(Cell);
-                Cell = new TableCell();
-                Cell.Text = Times[i].MemberName1;
-                Row.Cells.Add(Cell);
-                Cell = new TableCell();
-                Cell.Text = Times[i].MemberName2;
-                Row.Cells.Add(Cell);
-                Cell = new TableCell();
-                Cell.Text = Times[i].MemberName3;
-                Row.Cells.Add(Cell);
-                Cell = new TableCell();
-                Cell.Text = Times[i].MemberName4;
-                Row.Cells.Add(Cell);
-
-                TeeTimesTable.Rows.Add(Row);
             }
+            catch (Exception)
+            {
+                Message.Text = "To view tee times please input a correct date";
+            }
+            
         }
 
         protected void Submit_Click(object sender, EventArgs e)
@@ -64,13 +69,24 @@ namespace ClubBAIST.BAISTClubWebsite.UI
 
             string datetime = Date.Text;
             datetime += " " + hours.ToString() + ":" + minutes.ToString();
-
+            TeeTime NewTeeTime;
             DateTime DateT = DateTime.Parse(datetime);
+            try
+            {
+                NewTeeTime = new TeeTime(DateT, DateT, Session["MemberName"].ToString(), MemberName2.Text, MemberName3.Text, MemberName4.Text, Convert.ToInt32(Session["MemberNumber"]), Convert.ToInt32(NumberOfCarts.Text),
+                PhoneNumber.Text, Convert.ToInt32(NumberOfCarts.Text), null);
+            }
+            catch (Exception)
+            {
+                Message.Text = "Information was input incorrectly. Double check your fields";
+                return;
+            }
+            
 
             BAISTClubCodeHandler RequestHandler = new BAISTClubCodeHandler();
 
-            if (RequestHandler.ReserveTeeTime(DateT, DateT, NumberOfPlayers.SelectedIndex + 1, Session["MemberName"].ToString(),MemberName2.Text,MemberName3.Text,MemberName4.Text,
-                Convert.ToInt32(NumberOfCarts.Text), PhoneNumber.Text, Convert.ToInt32(Session["MemberNumber"])))
+
+            if (RequestHandler.ReserveTeeTime(NewTeeTime,Session["MembershipLevel"].ToString()))
                 Message.Text = "Reservation was successfuly made.";
             else
                 Message.Text = "Reservation could not be made.";
@@ -134,6 +150,32 @@ namespace ClubBAIST.BAISTClubWebsite.UI
                 MemberName2.Enabled = true;
                 MemberName3.Enabled = true;
                 MemberName4.Enabled = true;
+            }
+        }
+
+        protected void AMorPM_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Hour.Items.Clear();
+            if (Hour.SelectedIndex == 0)
+            {
+                Hour.Items.Add("6");
+                Hour.Items.Add("7");
+                Hour.Items.Add("8");
+                Hour.Items.Add("9");
+                Hour.Items.Add("10");
+                Hour.Items.Add("11");
+            }
+            else
+            {
+                Hour.Items.Add("12");
+                Hour.Items.Add("1");
+                Hour.Items.Add("2");
+                Hour.Items.Add("3");
+                Hour.Items.Add("4");
+                Hour.Items.Add("5");
+                Hour.Items.Add("6");
+                Hour.Items.Add("7");
+                Hour.Items.Add("8");
             }
         }
     }

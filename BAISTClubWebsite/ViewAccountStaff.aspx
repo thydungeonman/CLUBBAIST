@@ -1,8 +1,10 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/MasterPage.master" AutoEventWireup="true" CodeFile="ViewAccountStaff.aspx.cs" Inherits="ViewAccountStaff" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/MasterPageStaff.master" AutoEventWireup="true" CodeFile="ViewAccountStaff.aspx.cs" Inherits="ViewAccountStaff" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" Runat="Server">
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" Runat="Server">
+    <br />
+    <br />
     MemberNumber: <asp:TextBox ID="MemberNumber" TextMode="Number" runat="server"></asp:TextBox>
     <br />
     <asp:Button ID="Submit" OnClick="Submit_Click" runat="server" Text="View Account" />

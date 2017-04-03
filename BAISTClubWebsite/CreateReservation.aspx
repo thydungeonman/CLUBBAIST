@@ -26,18 +26,13 @@
                             </asp:TableCell>
                             <asp:TableCell>
                                  Hour: <asp:DropDownList ID="Hour" runat="server">
-                        <asp:ListItem>1</asp:ListItem>
-                        <asp:ListItem>2</asp:ListItem>
-                        <asp:ListItem>3</asp:ListItem>
-                        <asp:ListItem>4</asp:ListItem>
-                        <asp:ListItem>5</asp:ListItem>
+                        
                         <asp:ListItem>6</asp:ListItem>
                         <asp:ListItem>7</asp:ListItem>
                         <asp:ListItem>8</asp:ListItem>
                         <asp:ListItem>9</asp:ListItem>
                         <asp:ListItem>10</asp:ListItem>
                         <asp:ListItem>11</asp:ListItem>
-                        <asp:ListItem>12</asp:ListItem>
                           </asp:DropDownList>
                     Minute:<asp:DropDownList ID="Minute" runat="server">
                         <asp:ListItem>00</asp:ListItem>
@@ -49,7 +44,7 @@
                         <asp:ListItem>45</asp:ListItem>
                         <asp:ListItem>52</asp:ListItem>
                            </asp:DropDownList>
-                    AMorPM <asp:DropDownList ID="AMorPM" runat="server">
+                    AMorPM <asp:DropDownList ID="AMorPM" AutoPostBack="true" OnSelectedIndexChanged="AMorPM_SelectedIndexChanged" runat="server">
                         <asp:ListItem>AM</asp:ListItem>
                         <asp:ListItem>PM</asp:ListItem>
                            </asp:DropDownList><br />

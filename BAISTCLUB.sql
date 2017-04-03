@@ -159,18 +159,17 @@ CREATE TABLE MonthlyHandicap
 	BestAverage FLOAT NOT NULL,
 	PRIMARY KEY (Month,Year,MemberNumber)
 )
+DECLARE @Time DATETIME = GETDATE() + 2
+EXECUTE SetUpSpecificDay @Time
 
 GO
-DECLARE @THING DATETIME = GETDATE() + 1
-EXECUTE SetUpSpecificDay @THING
-
 
 CREATE PROCEDURE SetUpSpecificDay @Day DATETIME = NULL
 AS
 DECLARE @Time TIME = '06:00'
 DECLARE @EndTime TIME = '20:07'
 DECLARE @Bit BIT = 1
-
+DECLARE @DayName NVARCHAR(9) = DATENAME(WEEKDAY,@Day)
 IF @Day IS NULL
 	RAISERROR('SetUpSpecificDay ERROR - REQUIRED PARAMETER @Day',16,1)
 ELSE
@@ -192,7 +191,8 @@ ELSE
 			SET @Bit = 1
 			END
 		END
-		EXECUTE CheckTournaments @Day
+	EXECUTE CheckTournaments @Day
+	EXECUTE CheckStandingReservations @DayName, @Day
 
 	END
 
@@ -201,6 +201,7 @@ GO
 CREATE PROCEDURE SetUpDay
 AS
 DECLARE @Today DATETIME = GETDATE()
+DECLARE @DayName NVARCHAR(9) = DATENAME(WEEKDAY,@Today)
 DECLARE @Time TIME = '06:00'
 DECLARE @EndTime TIME = '20:07'
 DECLARE @Bit BIT = 1
@@ -221,6 +222,9 @@ WHILE DATEDIFF(MINUTE,@Time,@EndTime) != 0
 		SET @Bit = 1
 		END
 	END
+EXECUTE CheckTournaments @Today
+EXECUTE CheckStandingReservations @DayName, @DayName
+
 
 GO
 CREATE PROCEDURE ProcessCurrentHandicapFactor(@MemberNumber INT = NULL)
@@ -365,13 +369,12 @@ go
 
 
 CREATE PROCEDURE AddTeeTime(@Date date  = NULL,@Time TIME(0) = NULL,@MemberNumber INT = NULL,@MemberName1 NVARCHAR(20) = NULL,@MemberName2 NVARCHAR(20),@MemberName3 NVARCHAR(20),@MemberName4 NVARCHAR(20),@NumberOfPlayers INT = NULL,@PhoneNumber VARCHAR(15) = NULL,
-@NumberOfCarts INT = NULL,@EmployeeName NVARCHAR(20) = NULL)
+@NumberOfCarts INT = NULL,@EmployeeName NVARCHAR(20) = NULL,@MemberShipLevel VARCHAR(6) = NULL)
 AS
 DECLARE @ReturnCode INT
 SET @ReturnCode = 1
 DECLARE @Now AS DATETIME
 SET @Now = GETDATE()
-DECLARE @MembershipLevel VARCHAR(6)
 DECLARE @NumMem INT
 DECLARE @Good Bit
 SET @Good = 0
@@ -394,13 +397,14 @@ ELSE IF @NumberOfCarts IS NULL
 	RAISERROR('AddTeeTime error - Required Parameter - @NumberOfCarts',16,1)
 ELSE IF @MemberName1 IS NULL
 	RAISERROR('AddTeeTime error - Required Parameter - @MemberName1',16,1)
+ELSE IF @MemberShipLevel IS NULL
+	RAISERROR('AddTeeTime error - Required Parameter - @MemberShipLevel',16,1)
 ELSE
 	BEGIN
 	IF DATEDIFF(day,@Now,@Date) > 7 OR DATEDIFF(day,@Now,@Date) < 0
 		RAISERROR('AddTeeTime error - Cannot make a reservation that far ahead',16,1)
 	ELSE
 		BEGIN
-		SET @MembershipLevel = (SELECT MembershipLevel FROM Member WHERE MemberNumber = @MemberNumber)
 
 		IF @MembershipLevel = 'Gold'
 			SET @Good = 1
@@ -430,7 +434,7 @@ ELSE
 
 				IF NOT EXISTS(SELECT dbo.DailyReservationSheet.Date FROM DailyReservationSheet WHERE Date = @Date)
 				BEGIN
-					EXECUTE AddReservation @Date
+					RAISERROR('AddTeeTime error - The Reservation sheet has not been made for this day',16,1)
 				END
 				IF EXISTS (SELECT * FROM TeeTime WHERE Date = @Date AND Time = @Time AND NumberOfPlayers = 0)
 					BEGIN
@@ -445,6 +449,8 @@ ELSE
 						EXECUTE DealWithNames @MEM1 out, @MEM2 out, @MEM3 out, @MEM4 out, @MemberName1,@MemberName2,@MemberName3,@NumMem
 						UPDATE TeeTime SET MemberName1 = @MEM1, MemberName2 = @MEM2,MemberName3 = @MEM3,MemberName4 = @MEM4,NumberOfPlayers = (NumberofPlayers + @NumberOfPlayers) WHERE Date = @Date AND Time = @Time
 					END
+				ELSE 
+					RAISERROR('AddTeeTime error - The selected tee time was full',16,1)
 			END
 		END
 	END
@@ -470,7 +476,7 @@ ELSE
 	BEGIN
 
 	DECLARE contact_cursor CURSOR FOR
-	SELECT RequestedTime,MemberNumber1,MemberName1,MemberName2,MemberName3,MemberName4 FROM StandingReservation WHERE DayOfWeek = @Day AND IsCanceled = 0
+	SELECT RequestedTime,MemberNumber1,MemberName1,MemberName2,MemberName3,MemberName4 FROM StandingReservation WHERE DayOfWeek = @Day AND IsCanceled = 0 AND DATEDIFF(DAY,@Date,StartDate) <= 0 AND DATEDIFF(DAY,@Date,EndDate) >= 0
 
 	OPEN contact_cursor
 
@@ -590,7 +596,7 @@ IF @MemberNumber IS NULL
 	RAISERROR('GetMembersReservations error - required parameter @MemberNumber',16,1)
 ELSE
 	BEGIN
-	SELECT Date, Time FROM TeeTime WHERE MemberNumber = 2 AND DATEDIFF(DAY,Date,GETDATE()) >= 0
+	SELECT Date, Time FROM TeeTime WHERE MemberNumber = @MemberNumber AND DATEDIFF(DAY,Date,GETDATE()) <= 0
 	IF @@ERROR = 0 
 		SET @ReturnCode = 0
 	ELSE
@@ -646,32 +652,33 @@ GO
 
 CREATE PROCEDURE CheckTournaments @Day DATE
 AS
+DECLARE @Name NVARCHAR(100)
 DECLARE @StartD DATE
 DECLARE @EndD DATE
 DECLARE @StartT TIME
 DECLARE @EndT TIME
 
-SELECT @StartD = StartDate,@EndD = EndDate,@StartT = StartTime, @EndT = EndTime FROM Tournament
+SELECT @Name = Name, @StartD = StartDate,@EndD = EndDate,@StartT = StartTime, @EndT = EndTime FROM Tournament
 WHERE DATEDIFF(DAY,@DAY,StartDate) <= 0 AND DATEDIFF(DAY,@DAY,ENDDate) >= 0
 
 IF	DATEDIFF(DAY,@Day,@StartD) = 0
 	BEGIN
 	UPDATE TeeTime
-	SET MemberName1 = 'Tournament',MemberName2 = 'Tournament',MemberName3 = 'Tournament',MemberName4 = 'Tournament', NumberOfPlayers = 4,
+	SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
 		NumberOfCarts = 4
-	WHERE DATEDIFF(MINUTE,Time,@StartT) >= 0 AND DATE = @Day
+	WHERE DATEDIFF(MINUTE,@StartT,Time) >= 0 AND DATE = @Day
 	END
 ELSE IF DATEDIFF(DAY,@DAY,@EndD) = 0
 	BEGIN
 	UPDATE TeeTime
-	SET MemberName1 = 'Tournament',MemberName2 = 'Tournament',MemberName3 = 'Tournament',MemberName4 = 'Tournament', NumberOfPlayers = 4,
+	SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
 		NumberOfCarts = 4
-	WHERE DATEDIFF(MINUTE,Time,@EndT) <= 0 AND DATE = @Day
+	WHERE DATEDIFF(MINUTE,@EndT,Time) <= 0 AND DATE = @Day
 	END
 ELSE
 	BEGIN
 	UPDATE TeeTime
-	SET MemberName1 = 'Tournament',MemberName2 = 'Tournament',MemberName3 = 'Tournament',MemberName4 = 'Tournament', NumberOfPlayers = 4,
+	SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
 		NumberOfCarts = 4
 	WHERE DATE = @Day
 	END
@@ -757,7 +764,7 @@ ELSE
 		INSERT INTO Transactions VALUES
 		(@AccountID,GETDATE(),@ActivityDate,@Description,@Amount)
 		UPDATE Account 
-		SET CurrentBalance = CurrentBalance - (@Amount * -1)
+		SET CurrentBalance = CurrentBalance - @Amount
 		WHERE AccountID = @AccountID
 	END
 RETURN @ReturnCode
@@ -821,7 +828,6 @@ ELSE
 		RAISERROR('GetCurrentBalance error - SELECT error',16,1)
 	END
 RETURN @ReturnCode
-
 
 
 GO
@@ -963,7 +969,6 @@ DECLARE @Standing CHAR(1)
 DECLARE @BirthDate DATE
 DECLARE @MemberNumber INT
 DECLARE @CurrentDate DATE = GETDATE()
-
 DECLARE @ReturnCode INT = 1
 IF @ApplicationID IS NULL
 	RAISERROR('AcceptApplication error - Missing Parameter @ApplicationID',16,1)
@@ -988,7 +993,7 @@ ELSE
 			IF	DATEDIFF(YEAR,@BirthDate,@CurrentDate) > 64
 			BEGIN
 				SET @MemberShipTier = 'Senior Shareholder'
-				EXECUTE AddMember 'Gold',@MemberShipTier,@MemberName,@Password,0,@Sex,'G',@MemberNumber OUT
+				EXECUTE AddMember 'Gold',@MemberShipTier,@MemberName,@Password,1,@Sex,'G',@MemberNumber OUT
 				EXECUTE AddAccount @MemberNumber
 				EXECUTE AddTransactionQuick @MemberNumber,@CurrentDate,'Entrance Fee/4',2500
 				EXECUTE AddTransactionQuick @MemberNumber,@CurrentDate,'Price of Share',1000
@@ -996,7 +1001,7 @@ ELSE
 			ELSE
 			BEGIN
 				SET @MemberShipTier = 'Shareholder'
-				EXECUTE AddMember 'Gold',@MemberShipTier,@MemberName,@Password,0,@Sex,'G',@MemberNumber OUT
+				EXECUTE AddMember 'Gold',@MemberShipTier,@MemberName,@Password,1,@Sex,'G',@MemberNumber OUT
 				EXECUTE AddAccount @MemberNumber
 				EXECUTE AddTransactionQuick @MemberNumber,@CurrentDate,'Entrance Fee/4',2500
 				EXECUTE AddTransactionQuick @MemberNumber,@CurrentDate,'Price of Share',1000
@@ -1278,4 +1283,8 @@ SELECT * FROM MonthlyHandicap
 SELECT * FROM TeeTime
 SELECT * FROM DailyReservationSheet
 SELECT * FROM Tournament
+SELECT * FROM MEMBER
+SELECT * FROM StandingReservation
 
+
+EXEC GetMembersReservations 2

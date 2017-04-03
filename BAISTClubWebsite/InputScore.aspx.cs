@@ -47,16 +47,7 @@ public partial class InputScore : System.Web.UI.Page
 
         if (NewScore.scores.Count == 18)
             NewScore.HandicapDifferential = Math.Round(((NewScore.Total - float.Parse(Rating.Text)) * 113) / float.Parse(Slope.Text), 1);
-        //if (Session["Sex"].ToString() == "M")
-        //    if (TeeList.SelectedValue == "White")
-        //        NewScore.HandicapDifferential = Math.Round(((NewScore.Total - MENWHITERATING) *  113) / MENWHITESLOPE,1);
-        //    else
-        //        NewScore.HandicapDifferential = Math.Round(((NewScore.Total - MENBLUERATING) * 113) / MENBLUESLOPE,1);
-        //else
-        //    if (TeeList.SelectedValue == "Red")
-        //        NewScore.HandicapDifferential = Math.Round(((NewScore.Total - WOMENREDRATING) * 113) / WOMENREDSLOPE,1);
-        //    else
-        //        NewScore.HandicapDifferential = Math.Round(((NewScore.Total - WOMENWHITERATING) * 113) / WOMENWHITESLOPE,1);
+
 
         BAISTClubCodeHandler handler = new BAISTClubCodeHandler();
         if (handler.RecordScore((int)Session["MemberNumber"], NewScore))

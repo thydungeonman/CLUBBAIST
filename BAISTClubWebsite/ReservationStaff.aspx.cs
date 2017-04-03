@@ -38,7 +38,7 @@ namespace ClubBAIST.BAISTClubWebsite.UI
             BAISTClubCodeHandler RequestHandler = new BAISTClubCodeHandler();
 
             if (RequestHandler.ReserveTeeTime(DateT, DateT, NumberOfPlayers.SelectedIndex + 1, MemberName1.Text, MemberName2.Text, MemberName3.Text, MemberName4.Text,
-                Convert.ToInt32(NumberOfCarts.Text), PhoneNumber.Text, int.Parse(MemberNumber.Text)))
+                Convert.ToInt32(NumberOfCarts.Text), PhoneNumber.Text, int.Parse(MemberNumber.Text),"Gold"))
                 Message.Text = "Reservation was successfuly made.";
             else
                 Message.Text = "Reservation could not be made.";
@@ -129,6 +129,83 @@ namespace ClubBAIST.BAISTClubWebsite.UI
             Tournament NewTournament = new Tournament(Name.Text, TournamentStartDate, TournamentEndDate, TournamentStartDate, TournamentEndDate);
             BAISTClubCodeHandler RequestHandler = new BAISTClubCodeHandler();
             RequestHandler.AddTournament(NewTournament);
+        }
+        protected void AMorPM_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Hour.Items.Clear();
+            if (Hour.SelectedIndex == 0)
+            {
+                Hour.Items.Add("6");
+                Hour.Items.Add("7");
+                Hour.Items.Add("8");
+                Hour.Items.Add("9");
+                Hour.Items.Add("10");
+                Hour.Items.Add("11");
+            }
+            else
+            {
+                Hour.Items.Add("12");
+                Hour.Items.Add("1");
+                Hour.Items.Add("2");
+                Hour.Items.Add("3");
+                Hour.Items.Add("4");
+                Hour.Items.Add("5");
+                Hour.Items.Add("6");
+                Hour.Items.Add("7");
+                Hour.Items.Add("8");
+            }
+        }
+
+        protected void TSAMorPM_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            TSHour.Items.Clear();
+            if (TSHour.SelectedIndex == 0)
+            {
+                TSHour.Items.Add("6");
+                TSHour.Items.Add("7");
+                TSHour.Items.Add("8");
+                TSHour.Items.Add("9");
+                TSHour.Items.Add("10");
+                TSHour.Items.Add("11");
+            }
+            else
+            {
+                TSHour.Items.Add("12");
+                TSHour.Items.Add("1");
+                TSHour.Items.Add("2");
+                TSHour.Items.Add("3");
+                TSHour.Items.Add("4");
+                TSHour.Items.Add("5");
+                TSHour.Items.Add("6");
+                TSHour.Items.Add("7");
+                TSHour.Items.Add("8");
+            }
+        }
+
+        protected void TEAMorPM_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            TEHour.Items.Clear();
+            if (TEHour.SelectedIndex == 0)
+            {
+                TEHour.Items.Add("6");
+                TEHour.Items.Add("7");
+                TEHour.Items.Add("8");
+                TEHour.Items.Add("9");
+                TEHour.Items.Add("10");
+                TEHour.Items.Add("11");
+            }
+            else
+            {
+                TEHour.Items.Add("12");
+                TEHour.Items.Add("1");
+                TEHour.Items.Add("2");
+                TEHour.Items.Add("3");
+                TEHour.Items.Add("4");
+                TEHour.Items.Add("5");
+                TEHour.Items.Add("6");
+                TEHour.Items.Add("7");
+                TEHour.Items.Add("8");
+            }
         }
     }
 }

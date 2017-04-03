@@ -9,11 +9,19 @@ namespace ClubBAIST.BAISTClubWebsite.Domain
 {
     public class BAISTClubCodeHandler
     {
-        public bool ReserveTeeTime(DateTime Date, DateTime Time, int NumberOfPlayers, string MemberName1, string MemberName2, string MemberName3, string MemberName4, int NumberOfCarts, string PhoneNumber, int MemberNumber)
+        public bool ReserveTeeTime(DateTime Date, DateTime Time, int NumberOfPlayers, string MemberName1, string MemberName2, string MemberName3, string MemberName4, int NumberOfCarts, string PhoneNumber, int MemberNumber,string MembershipLevel)
         {
             bool Confirmation;
             Reservations ReservationManager = new Reservations();
-            Confirmation = ReservationManager.AddReservation(Date, Time, NumberOfPlayers,MemberName1,MemberName2,MemberName3,MemberName4, NumberOfCarts, PhoneNumber, MemberNumber);
+            Confirmation = ReservationManager.AddReservation(Date, Time, NumberOfPlayers,MemberName1,MemberName2,MemberName3,MemberName4, NumberOfCarts, PhoneNumber, MemberNumber, MembershipLevel);
+            return Confirmation;
+        }
+
+        public bool ReserveTeeTime(TeeTime NewTeeTime, string MembershipLevel)
+        {
+            bool Confirmation;
+            Reservations ReservationManager = new Reservations();
+            Confirmation = ReservationManager.AddReservation(NewTeeTime, MembershipLevel);
             return Confirmation;
         }
 
@@ -124,6 +132,11 @@ namespace ClubBAIST.BAISTClubWebsite.Domain
         {
             Reservations TournamentManager = new Reservations();
             return TournamentManager.AddTournament(T);
+        }
+        public bool AddDailyReservationSheet(DateTime Day)
+        {
+            Reservations ReservationManager = new Reservations();
+            return ReservationManager.AddDailyReservationSheet(Day);
         }
 
     }

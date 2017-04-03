@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/MasterPage.master" AutoEventWireup="true" CodeFile="AddMemberApplication.aspx.cs" Inherits="ClubBAIST.BAISTClubWebsite.UI.AddMemberApplication" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/MasterPageStaff.master" AutoEventWireup="true" CodeFile="AddMemberApplication.aspx.cs" Inherits="ClubBAIST.BAISTClubWebsite.UI.AddMemberApplication" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" Runat="Server">
 </asp:Content>

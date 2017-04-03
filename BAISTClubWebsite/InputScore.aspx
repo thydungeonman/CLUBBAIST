@@ -10,8 +10,8 @@
         <asp:ListItem>White</asp:ListItem>
         <asp:ListItem>Blue</asp:ListItem>
          </asp:DropDownList>
-    Course Rating: <asp:TextBox ID="Rating" runat="server"></asp:TextBox>
-    Slope: <asp:TextBox ID="Slope" runat="server"></asp:TextBox>
+    Course Rating: <asp:TextBox ID="Rating" TextMode="Number" runat="server"></asp:TextBox>
+    Slope: <asp:TextBox ID="Slope" runat="server" TextMode="Number"></asp:TextBox>
     <asp:Table ID="Table1" runat="server">
         <asp:TableRow>
             <asp:TableCell>Hole:</asp:TableCell>

@@ -11,8 +11,100 @@ namespace ClubBAIST.BAISTClubWebsite.TechnicalServices
 {
     public class Reservations
     {
+        public bool AddReservation(TeeTime NewTeeTime, string MemberShipLevel)
+        {
+            bool Success = true;
+            SqlConnection CONN = new SqlConnection();
+            CONN.ConnectionString = ConfigurationManager.ConnectionStrings["ClubBAIST Database"].ConnectionString;
+            //CONN.ConnectionString = @"Integrated Security = true;Persist Security Info = False;Server = (localdb)\v11.0;Database = BAISTClubDatabase;";
+            CONN.Open();
 
-        public bool AddReservation(DateTime Date, DateTime Time, int NumberOfPlayers,string MemberName1 ,string MemberName2, string MemberName3, string MemberName4, int NumberOfCarts, string PhoneNumber, int MemberNumber)
+            SqlCommand AddCommand = new SqlCommand();
+            AddCommand.CommandText = "AddTeeTime";
+            AddCommand.CommandType = CommandType.StoredProcedure;
+            AddCommand.Connection = CONN;
+
+            SqlParameter parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.Date;
+            parameter.Value = NewTeeTime.Date.Date;
+            parameter.ParameterName = "@Date";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.Time;
+            parameter.Value = NewTeeTime.Time.TimeOfDay;
+            parameter.ParameterName = "@Time";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.NVarChar;
+            parameter.Value = NewTeeTime.MemberName1;
+            parameter.ParameterName = "@MemberName1";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.NVarChar;
+            parameter.Value = NewTeeTime.MemberName2;
+            parameter.ParameterName = "@MemberName2";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.NVarChar;
+            parameter.Value = NewTeeTime.MemberName3;
+            parameter.ParameterName = "@MemberName3";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.NVarChar;
+            parameter.Value = NewTeeTime.MemberName4;
+            parameter.ParameterName = "@MemberName4";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.Int;
+            parameter.Value = NewTeeTime.MemberNumber;
+            parameter.ParameterName = "@MemberNumber";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.Int;
+            parameter.Value = NewTeeTime.NumberOfPlayers;
+            parameter.ParameterName = "@NumberOfPlayers";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.VarChar;
+            parameter.Value = NewTeeTime.PhoneNumber;
+            parameter.ParameterName = "@PhoneNumber";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.Int;
+            parameter.Value = NewTeeTime.NumberOfCarts;
+            parameter.ParameterName = "@NumberOfCarts";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.VarChar;
+            parameter.Value = MemberShipLevel;
+            parameter.ParameterName = "@MemberShipLevel";
+            AddCommand.Parameters.Add(parameter);
+
+            try
+            {
+                AddCommand.ExecuteNonQuery();
+            }
+            catch (Exception)
+            {
+                Success = false;
+            }
+
+            CONN.Close();
+            return Success;
+        }
+
+
+        public bool AddReservation(DateTime Date, DateTime Time, int NumberOfPlayers,string MemberName1 ,string MemberName2, string MemberName3, string MemberName4, int NumberOfCarts, string PhoneNumber, int MemberNumber,string MemberShipLevel)
         {
             bool Success = true;
             SqlConnection CONN = new SqlConnection();
@@ -83,6 +175,12 @@ namespace ClubBAIST.BAISTClubWebsite.TechnicalServices
             parameter.SqlDbType = SqlDbType.Int;
             parameter.Value = NumberOfCarts;
             parameter.ParameterName = "@NumberOfCarts";
+            AddCommand.Parameters.Add(parameter);
+
+            parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.VarChar;
+            parameter.Value = MemberShipLevel;
+            parameter.ParameterName = "@MemberShipLevel";
             AddCommand.Parameters.Add(parameter);
 
             try
@@ -329,5 +427,38 @@ namespace ClubBAIST.BAISTClubWebsite.TechnicalServices
 
         }
 
+        public bool AddDailyReservationSheet(DateTime Day)
+        {
+            bool Success = true;
+            SqlConnection CONN = new SqlConnection();
+            CONN.ConnectionString = ConfigurationManager.ConnectionStrings["ClubBAIST Database"].ConnectionString;
+            CONN.Open();
+
+            SqlCommand Command = new SqlCommand();
+            Command.CommandText = "SetUpSpecificDay";
+            Command.CommandType = CommandType.StoredProcedure;
+            Command.Connection = CONN;
+
+            SqlParameter parameter = new SqlParameter();
+            parameter.SqlDbType = SqlDbType.Date;
+            parameter.Value = Day.Date;
+            parameter.ParameterName = "@Day";
+            Command.Parameters.Add(parameter);
+            try
+            {
+                Command.ExecuteNonQuery();
+            }
+            catch (Exception)
+            {
+                Success = false;
+            }
+            finally
+            {
+                CONN.Close();
+            }
+            
+
+            return Success;
+        }
     }
 }
