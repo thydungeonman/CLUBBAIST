@@ -21,6 +21,7 @@
             </asp:TableCell>
             <asp:TableCell>
                 <asp:TextBox ID="Day" runat="server" TextMode="Date"></asp:TextBox>
+                <asp:Label ID="Message" runat="server" Text=""></asp:Label>
             </asp:TableCell>
         </asp:TableRow>
         <asp:TableRow>
@@ -28,7 +29,8 @@
                 <asp:Button ID="Today" runat="server" OnClick="Today_Click" Text="Create Sheet For Today" />
             </asp:TableCell>
             <asp:TableCell>
-                <asp:Button ID="SelectedDay" runat="server" OnClick="SelectedDay_Click" Text="Create Sheet For Selected Day" />
+                <asp:Button ID="Button1" runat="server" OnClick="Button1_Click" Text="Create Sheet for Selected Day" />
+               
             </asp:TableCell>
         </asp:TableRow>
     </asp:Table>

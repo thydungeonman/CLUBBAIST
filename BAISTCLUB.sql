@@ -159,8 +159,6 @@ CREATE TABLE MonthlyHandicap
 	BestAverage FLOAT NOT NULL,
 	PRIMARY KEY (Month,Year,MemberNumber)
 )
-DECLARE @Time DATETIME = GETDATE() + 2
-EXECUTE SetUpSpecificDay @Time
 
 GO
 
@@ -657,30 +655,34 @@ DECLARE @EndD DATE
 DECLARE @StartT TIME
 DECLARE @EndT TIME
 
-SELECT @Name = Name, @StartD = StartDate,@EndD = EndDate,@StartT = StartTime, @EndT = EndTime FROM Tournament
-WHERE DATEDIFF(DAY,@DAY,StartDate) <= 0 AND DATEDIFF(DAY,@DAY,ENDDate) >= 0
+ IF EXISTS (Select * FROM Tournament WHERE DATEDIFF(DAY,@Day,StartDate) <= 0 AND DATEDIFF(DAY,@DAY,ENDDate) >= 0)
+	BEGIN
+	SELECT @Name = Name, @StartD = StartDate,@EndD = EndDate,@StartT = StartTime, @EndT = EndTime FROM Tournament
+	WHERE DATEDIFF(DAY,@DAY,StartDate) <= 0 AND DATEDIFF(DAY,@DAY,ENDDate) >= 0
 
-IF	DATEDIFF(DAY,@Day,@StartD) = 0
-	BEGIN
-	UPDATE TeeTime
-	SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
-		NumberOfCarts = 4
-	WHERE DATEDIFF(MINUTE,@StartT,Time) >= 0 AND DATE = @Day
+	IF	DATEDIFF(DAY,@Day,@StartD) = 0
+		BEGIN
+		UPDATE TeeTime
+		SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
+			NumberOfCarts = 4
+		WHERE DATEDIFF(MINUTE,@StartT,Time) >= 0 AND DATE = @Day
+		END
+	ELSE IF DATEDIFF(DAY,@DAY,@EndD) = 0
+		BEGIN
+		UPDATE TeeTime
+		SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
+			NumberOfCarts = 4
+		WHERE DATEDIFF(MINUTE,@EndT,Time) <= 0 AND DATE = @Day
+		END
+	ELSE
+		BEGIN
+		UPDATE TeeTime
+		SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
+			NumberOfCarts = 4
+		WHERE DATE = @Day
+		END
 	END
-ELSE IF DATEDIFF(DAY,@DAY,@EndD) = 0
-	BEGIN
-	UPDATE TeeTime
-	SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
-		NumberOfCarts = 4
-	WHERE DATEDIFF(MINUTE,@EndT,Time) <= 0 AND DATE = @Day
-	END
-ELSE
-	BEGIN
-	UPDATE TeeTime
-	SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
-		NumberOfCarts = 4
-	WHERE DATE = @Day
-	END
+
 
 
 GO
@@ -1299,7 +1301,3 @@ GRANT EXECUTE ON SetUpDay TO aspnet
 GRANT EXECUTE ON SetUpSpecificDay TO aspnet
 GRANT EXECUTE ON WaitlistApplication TO aspnet
 GRANT EXECUTE ON YearEndFees TO aspnet
-
-SELECT * FROM TeeTime
-SELECT * FROM TeeTime
-SELECT * FROM DailyReservationSheet

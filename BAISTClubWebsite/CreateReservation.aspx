@@ -68,7 +68,7 @@
                                 MemberName:
                             </asp:TableCell>
                             <asp:TableCell>
-                                <asp:TextBox  ID="MemberName2" runat="server"></asp:TextBox><br />
+                                <asp:TextBox  ID="MemberName2" runat="server" Enabled="false"></asp:TextBox><br />
                             </asp:TableCell>
                         </asp:TableRow>
                         <asp:TableRow>
@@ -76,7 +76,7 @@
                                 MemberName:
                             </asp:TableCell>
                             <asp:TableCell>
-                                <asp:TextBox ID="MemberName3" runat="server"></asp:TextBox><br />
+                                <asp:TextBox ID="MemberName3" runat="server" Enabled="false"></asp:TextBox><br />
                             </asp:TableCell>
                         </asp:TableRow>
                         <asp:TableRow>
@@ -84,7 +84,7 @@
                                 MemberName:
                             </asp:TableCell>
                             <asp:TableCell>
-                                <asp:TextBox ID="MemberName4" runat="server"></asp:TextBox><br />
+                                <asp:TextBox ID="MemberName4" runat="server" Enabled="false"></asp:TextBox><br />
                             </asp:TableCell>
                         </asp:TableRow>
                         <asp:TableRow>

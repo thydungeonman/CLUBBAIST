@@ -18,14 +18,21 @@ namespace ClubBAIST.BAISTClubWebsite.UI
         protected void Today_Click(object sender, EventArgs e)
         {
             BAISTClubCodeHandler handler = new BAISTClubCodeHandler();
-            handler.AddDailyReservationSheet(DateTime.Now);
+            if (handler.AddDailyReservationSheet(DateTime.Now))
+                Message.Text = "Members can now make reservations for Today.";
+            else
+                Message.Text = "There was an error creating the sheet for today.";
         }
 
-        protected void SelectedDay_Click(object sender, EventArgs e)
+
+        protected void Button1_Click(object sender, EventArgs e)
         {
             BAISTClubCodeHandler handler = new BAISTClubCodeHandler();
-            handler.AddDailyReservationSheet(DateTime.Parse(Day.Text));
-        }
+            if (handler.AddDailyReservationSheet(DateTime.Parse(Day.Text)))
+                Message.Text = "Members can now make reservations on the day you selected";
+            else
+                Message.Text = "There was an error creating the sheet for today.";
 
+        }
     }
 }

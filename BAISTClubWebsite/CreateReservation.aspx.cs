@@ -96,6 +96,7 @@ namespace ClubBAIST.BAISTClubWebsite.UI
         {
             if (!Page.IsPostBack)
             {
+                NumberOfPlayers.SelectedIndex = 0;
                 int num = 0;
                 BAISTClubCodeHandler handler = new BAISTClubCodeHandler();
                 try
@@ -156,7 +157,7 @@ namespace ClubBAIST.BAISTClubWebsite.UI
         protected void AMorPM_SelectedIndexChanged(object sender, EventArgs e)
         {
             Hour.Items.Clear();
-            if (Hour.SelectedIndex == 0)
+            if (AMorPM.SelectedIndex == 0)
             {
                 Hour.Items.Add("6");
                 Hour.Items.Add("7");
