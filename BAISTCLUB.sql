@@ -191,8 +191,7 @@ ELSE
 			SET @Bit = 1
 			END
 		END
-	EXECUTE CheckTournaments @Day
-	EXECUTE CheckStandingReservations @DayName, @Day
+	
 
 	END
 
@@ -1206,29 +1205,7 @@ RETURN @ReturnCode
 --start data insertion
 
 
-DECLARE @Today DATE = GETDATE()
-EXEC AddReservation @Today
 
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
-
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
-
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
-
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
-
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
-
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
-
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
 GO
 
 CREATE PROCEDURE YearEndFees
@@ -1286,5 +1263,43 @@ SELECT * FROM Tournament
 SELECT * FROM MEMBER
 SELECT * FROM StandingReservation
 
+GRANT EXECUTE on AcceptApplication to aspnet
+GRANT EXECUTE ON AddAccount TO aspnet
+GRANT EXECUTE ON AddApplication TO aspnet
+GRANT EXECUTE ON AddMember TO aspnet
+GRANT EXECUTE ON AddReservation TO aspnet
+GRANT EXECUTE ON AddScore TO aspnet
+GRANT EXECUTE ON AddStandingReservation TO aspnet
+GRANT EXECUTE ON AddTeeTime TO aspnet
+GRANT EXECUTE ON AddTournament TO aspnet
+GRANT EXECUTE ON AddTransaction TO aspnet
+GRANT EXECUTE ON AddTransactionQuick TO aspnet
+GRANT EXECUTE ON CancelStandingReservation TO aspnet
+GRANT EXECUTE ON CancelTeeTime TO aspnet
+GRANT EXECUTE ON CheckStandingReservations TO aspnet
+GRANT EXECUTE ON CheckTournaments TO aspnet
+GRANT EXECUTE ON DailyChecks TO aspnet
+GRANT EXECUTE ON DealWithNames TO aspnet
+GRANT EXECUTE ON DenyApplication TO aspnet
+GRANT EXECUTE ON GetApplications TO aspnet
+GRANT EXECUTE ON GetAverage TO aspnet
+GRANT EXECUTE ON GetBest10Average TO aspnet
+GRANT EXECUTE ON GetCurrentBalance TO aspnet
+GRANT EXECUTE ON GetCurrentHandicap TO aspnet
+GRANT EXECUTE ON GetHandicapDifferentials TO aspnet
+GRANT EXECUTE ON GetHandicapFactor TO aspnet
+GRANT EXECUTE ON GetLoginInfo TO aspnet
+GRANT EXECUTE ON GetMembersReservations TO aspnet
+GRANT EXECUTE ON GetTeeTimes TO aspnet
+GRANT EXECUTE ON GetTransactions TO aspnet
+GRANT EXECUTE ON HoldApplication TO aspnet
+GRANT EXECUTE ON ProcessCurrentHandicapFactor TO aspnet
+GRANT EXECUTE ON MonthlyHandicapReport TO aspnet
+GRANT EXECUTE ON SetUpDay TO aspnet
+GRANT EXECUTE ON SetUpSpecificDay TO aspnet
+GRANT EXECUTE ON WaitlistApplication TO aspnet
+GRANT EXECUTE ON YearEndFees TO aspnet
 
-EXEC GetMembersReservations 2
+SELECT * FROM TeeTime
+SELECT * FROM TeeTime
+SELECT * FROM DailyReservationSheet
