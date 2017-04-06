@@ -17,6 +17,7 @@
         <asp:HyperLink ID="ReserveTeeTimeLink" NavigateUrl="~/CreateReservation.aspx" runat="server">Reserve Tee Time</asp:HyperLink>
         <asp:HyperLink ID="InputScoreLink" NavigateUrl="~/InputScore.aspx" runat="server">Input a Score</asp:HyperLink>
         <asp:HyperLink ID="ViewAccountLink" NavigateUrl="~/ViewAccount.aspx" runat="server">View Account</asp:HyperLink>
+        <asp:HyperLink ID="StaffLink" NavigateUrl="~/ReservationStaff.aspx" runat="server">Go to Staff Side</asp:HyperLink>
         <asp:Button ID="Logoff" Onclick="Logoff_Click" runat="server" Text="Log off" />
         <asp:ContentPlaceHolder id="ContentPlaceHolder1" runat="server">
         <div>
