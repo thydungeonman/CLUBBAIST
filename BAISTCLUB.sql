@@ -159,8 +159,6 @@ CREATE TABLE MonthlyHandicap
 	BestAverage FLOAT NOT NULL,
 	PRIMARY KEY (Month,Year,MemberNumber)
 )
-DECLARE @Time DATETIME = GETDATE() + 2
-EXECUTE SetUpSpecificDay @Time
 
 GO
 
@@ -191,8 +189,7 @@ ELSE
 			SET @Bit = 1
 			END
 		END
-	EXECUTE CheckTournaments @Day
-	EXECUTE CheckStandingReservations @DayName, @Day
+	
 
 	END
 
@@ -658,30 +655,34 @@ DECLARE @EndD DATE
 DECLARE @StartT TIME
 DECLARE @EndT TIME
 
-SELECT @Name = Name, @StartD = StartDate,@EndD = EndDate,@StartT = StartTime, @EndT = EndTime FROM Tournament
-WHERE DATEDIFF(DAY,@DAY,StartDate) <= 0 AND DATEDIFF(DAY,@DAY,ENDDate) >= 0
+ IF EXISTS (Select * FROM Tournament WHERE DATEDIFF(DAY,@Day,StartDate) <= 0 AND DATEDIFF(DAY,@DAY,ENDDate) >= 0)
+	BEGIN
+	SELECT @Name = Name, @StartD = StartDate,@EndD = EndDate,@StartT = StartTime, @EndT = EndTime FROM Tournament
+	WHERE DATEDIFF(DAY,@DAY,StartDate) <= 0 AND DATEDIFF(DAY,@DAY,ENDDate) >= 0
 
-IF	DATEDIFF(DAY,@Day,@StartD) = 0
-	BEGIN
-	UPDATE TeeTime
-	SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
-		NumberOfCarts = 4
-	WHERE DATEDIFF(MINUTE,@StartT,Time) >= 0 AND DATE = @Day
+	IF	DATEDIFF(DAY,@Day,@StartD) = 0
+		BEGIN
+		UPDATE TeeTime
+		SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
+			NumberOfCarts = 4
+		WHERE DATEDIFF(MINUTE,@StartT,Time) >= 0 AND DATE = @Day
+		END
+	ELSE IF DATEDIFF(DAY,@DAY,@EndD) = 0
+		BEGIN
+		UPDATE TeeTime
+		SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
+			NumberOfCarts = 4
+		WHERE DATEDIFF(MINUTE,@EndT,Time) <= 0 AND DATE = @Day
+		END
+	ELSE
+		BEGIN
+		UPDATE TeeTime
+		SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
+			NumberOfCarts = 4
+		WHERE DATE = @Day
+		END
 	END
-ELSE IF DATEDIFF(DAY,@DAY,@EndD) = 0
-	BEGIN
-	UPDATE TeeTime
-	SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
-		NumberOfCarts = 4
-	WHERE DATEDIFF(MINUTE,@EndT,Time) <= 0 AND DATE = @Day
-	END
-ELSE
-	BEGIN
-	UPDATE TeeTime
-	SET MemberName1 = @Name,MemberName2 = @Name,MemberName3 = @Name,MemberName4 = @Name, NumberOfPlayers = 4,
-		NumberOfCarts = 4
-	WHERE DATE = @Day
-	END
+
 
 
 GO
@@ -1206,29 +1207,7 @@ RETURN @ReturnCode
 --start data insertion
 
 
-DECLARE @Today DATE = GETDATE()
-EXEC AddReservation @Today
 
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
-
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
-
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
-
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
-
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
-
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
-
-SET @Today = DATEADD(DAY,1,@Today)
-EXEC AddReservation @Today
 GO
 
 CREATE PROCEDURE YearEndFees
@@ -1286,5 +1265,40 @@ SELECT * FROM Tournament
 SELECT * FROM MEMBER
 SELECT * FROM StandingReservation
 
+GRANT EXECUTE on AcceptApplication to aspnet
+GRANT EXECUTE ON AddAccount TO aspnet
+GRANT EXECUTE ON AddApplication TO aspnet
+GRANT EXECUTE ON AddMember TO aspnet
+GRANT EXECUTE ON AddReservation TO aspnet
+GRANT EXECUTE ON AddScore TO aspnet
+GRANT EXECUTE ON AddStandingReservation TO aspnet
+GRANT EXECUTE ON AddTeeTime TO aspnet
+GRANT EXECUTE ON AddTournament TO aspnet
+GRANT EXECUTE ON AddTransaction TO aspnet
+GRANT EXECUTE ON AddTransactionQuick TO aspnet
+GRANT EXECUTE ON CancelStandingReservation TO aspnet
+GRANT EXECUTE ON CancelTeeTime TO aspnet
+GRANT EXECUTE ON CheckStandingReservations TO aspnet
+GRANT EXECUTE ON CheckTournaments TO aspnet
+GRANT EXECUTE ON DailyChecks TO aspnet
+GRANT EXECUTE ON DealWithNames TO aspnet
+GRANT EXECUTE ON DenyApplication TO aspnet
+GRANT EXECUTE ON GetApplications TO aspnet
+GRANT EXECUTE ON GetAverage TO aspnet
+GRANT EXECUTE ON GetBest10Average TO aspnet
+GRANT EXECUTE ON GetCurrentBalance TO aspnet
+GRANT EXECUTE ON GetCurrentHandicap TO aspnet
+GRANT EXECUTE ON GetHandicapDifferentials TO aspnet
+GRANT EXECUTE ON GetHandicapFactor TO aspnet
+GRANT EXECUTE ON GetLoginInfo TO aspnet
+GRANT EXECUTE ON GetMembersReservations TO aspnet
+GRANT EXECUTE ON GetTeeTimes TO aspnet
+GRANT EXECUTE ON GetTransactions TO aspnet
+GRANT EXECUTE ON HoldApplication TO aspnet
+GRANT EXECUTE ON ProcessCurrentHandicapFactor TO aspnet
+GRANT EXECUTE ON MonthlyHandicapReport TO aspnet
+GRANT EXECUTE ON SetUpDay TO aspnet
+GRANT EXECUTE ON SetUpSpecificDay TO aspnet
+GRANT EXECUTE ON WaitlistApplication TO aspnet
+GRANT EXECUTE ON YearEndFees TO aspnet
 
-EXEC GetMembersReservations 2
