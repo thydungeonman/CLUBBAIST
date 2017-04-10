@@ -1252,7 +1252,36 @@ BEGIN
 END
 GO
 
+CREATE PROCEDURE AddNonGoldMember @MembershipLevel VARCHAR(6) = NULL, @MembershipTier VARCHAR(30) = NULL
+,@MemberName NVARCHAR(50) = NULL, @Password NVARCHAR(100) = NULL, @Sex CHAR(1) = NULL, @MemberNumber INT OUT
+AS
+DECLARE @ReturnCode INT = 1
 
+IF @MembershipLevel IS NULL
+	RAISERROR('AddNonGoldMember error - Required Parameter @MembershipLevel',16,1)
+ELSE IF @MembershipTier IS NULL
+	RAISERROR('AddNonGoldMember error - Required Parameter @MembershipTier',16,1)
+ELSE IF @MemberName IS NULL
+	RAISERROR('AddNonGoldMember error - Required Parameter @MemberName',16,1)
+ELSE IF @Password IS NULL
+	RAISERROR('AddNonGoldMember error - Required Parameter @Password',16,1)
+ELSE IF @Sex IS NULL
+	RAISERROR('AddNonGoldMember error - Required Parameter @Sex',16,1)
+ELSE IF @MembershipLevel != 'Silver' AND @MembershipLevel != 'Bronze' AND @MemberNumber != 'Copper'
+	RAISERROR('AddNonGoldMember error - bad Membershiplevel',16,1)
+ELSE IF @MembershipTier != 'Shareholder Spouse' AND @MembershipTier != 'Associate Spouse' AND @MembershipTier != 'Pee Wee' AND
+		@MembershipTier != 'Junior' AND @MembershipTier != 'Intermediate' AND @MembershipTier != 'Social'
+	RAISERROR('AddNonGoldMember error - bad MembershipTier',16,1)
+ELSE 
+	BEGIN
+	INSERT INTO Member
+	VALUES(@MembershipLevel,@MembershipTier,@MemberName,@Password,0,@Sex,'G',0.0)
+	END
+
+
+
+
+GO
 
 SELECT * FROM Transactions
 
@@ -1263,6 +1292,7 @@ SELECT * FROM TeeTime
 SELECT * FROM DailyReservationSheet
 SELECT * FROM Tournament
 SELECT * FROM MEMBER
+sp_help member
 SELECT * FROM StandingReservation
 
 GRANT EXECUTE on AcceptApplication to aspnet

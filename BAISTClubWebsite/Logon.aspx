@@ -25,7 +25,7 @@
     <asp:Button ID="Submit" OnClick="Submit_Click" runat="server" Text="Login" /><br />
     <asp:Label ID="Message" runat="server" Text=""></asp:Label>
         <br />
-        To login as a Shareholder use MemberNumber: 2 and password: aa 
+        To login as a Shareholder use MemberNumber: 5 and password: aa 
         <br/>
         To login as an Accociate use MemberNumber: 3 and password: dd
     </div>

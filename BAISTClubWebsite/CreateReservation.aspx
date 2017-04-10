@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" MasterPageFile="~/MasterPage.master" AutoEventWireup="true"  CodeFile="CreateReservation.aspx.cs" Inherits="ClubBAIST.BAISTClubWebsite.UI.CreateReservation" %>
+﻿<%@ Page Language="C#" MasterPageFile="~/MasterPage.master" AutoEventWireup="true"  CodeFile="CreateReservation.aspx.cs" Trace="true" Inherits="ClubBAIST.BAISTClubWebsite.UI.CreateReservation" %>
 
 
 <asp:Content ID="Content2" ContentPlaceHolderID="head" Runat="Server">

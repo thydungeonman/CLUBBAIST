@@ -24,6 +24,7 @@
 
         </div>
         </asp:ContentPlaceHolder>
+        This site is 100% free software published under GPL 3.0. "Free as in Freedom!"
     </div>
     </form>
 </body>

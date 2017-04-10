@@ -73,7 +73,7 @@ namespace ClubBAIST.BAISTClubWebsite.UI
             DateTime DateT = DateTime.Parse(datetime);
             try
             {
-                NewTeeTime = new TeeTime(DateT, DateT, Session["MemberName"].ToString(), MemberName2.Text, MemberName3.Text, MemberName4.Text, Convert.ToInt32(Session["MemberNumber"]), Convert.ToInt32(NumberOfCarts.Text),
+                NewTeeTime = new TeeTime(DateT, DateT, Session["MemberName"].ToString(), MemberName2.Text, MemberName3.Text, MemberName4.Text, Convert.ToInt32(Session["MemberNumber"]), Convert.ToInt32(NumberOfPlayers.SelectedValue),
                 PhoneNumber.Text, Convert.ToInt32(NumberOfCarts.Text), null);
             }
             catch (Exception)
